@@ -96,7 +96,7 @@ In summary, this implementation fuses multiple steps into 3 CUDA kernels with so
 
 - Compute the lower triangular of the IoU matrix $O\in \mathcal{R}^{N\times N}$, and perform the first max reduction.
 - Perform the remaining max reduction on the IoU matrix to obtain the row-wise maximums $O_{max}\in \mathcal{R}^N$
-- Compute the possible decay factor and possible scores $S'=F(S,O,O_{max}) \in \mathcal{R}^{N\times N}$ and select the boxes to remove, skipping the finding of the minimum decay factor for each box: if $\exist i:S'_{xi}<\mathrm{threshold}$, then detection $x$ should be removed.
+- Compute the possible decay factor and possible scores $S'=F(S,O,O_{max}) \in \mathcal{R}^{N\times N}$ and select the boxes to remove, skipping the finding of the minimum decay factor for each box: if $\exists i:S'_{xi}<\mathrm{threshold}$, then detection $x$ should be removed.
 
 I am writing a blog post on the details of the implementation (optimizations, tricks used, limitations, etc.) and discuss other NMS methods :innocent:
 

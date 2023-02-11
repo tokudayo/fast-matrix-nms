@@ -54,7 +54,7 @@ where `threshold` is the after-decay score threshold associated with the algorit
 
 
 ## Benchmark
-The results are benchmarked using `torch.benchmark` on a NVIDIA RTX 2060 and AMD Ryzen 7 4800H CPUs. The benchmark script is [`speedtest.py`](./speedtest.py).
+The results are benchmarked using `torch.benchmark` on an NVIDIA RTX 2060 and AMD Ryzen 7 4800H CPUs. The benchmark script is [`speedtest.py`](./speedtest.py).
 
 
 

@@ -1,17 +1,18 @@
 import torch
 
 
-def iou_matrix(a, b, norm=True):
-    tl_i = torch.maximum(a[:, None, :2], b[:, :2])
-    br_i = torch.minimum(a[:, None, 2:], b[:, 2:])
+def self_iou_matrix(boxes):
+    area = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
 
-    pad = not norm and 1 or 0
+    lt = torch.max(boxes[:, None, :2], boxes[:, :2])  # [N,M,2]
+    rb = torch.min(boxes[:, None, 2:], boxes[:, 2:])  # [N,M,2]
 
-    area_i = torch.prod(br_i - tl_i + pad, axis=2) * (tl_i < br_i).all(axis=2)
-    area_a = torch.prod(a[:, 2:] - a[:, :2] + pad, axis=1)
-    area_b = torch.prod(b[:, 2:] - b[:, :2] + pad, axis=1)
-    area_o = area_a[:, None] + area_b - area_i
-    return area_i / (area_o + 1e-10)
+    wh = (rb - lt).clamp(min=0)  # [N,M,2]
+    inter = wh[:, :, 0] * wh[:, :, 1]  # [N,M]
+
+    union = area[:, None] + area - inter
+
+    return torch.triu(inter / (union + 1e-10), diagonal=1)
 
 
 def matrix_nms(
@@ -35,23 +36,25 @@ def matrix_nms(
     Returns:
         selected_indices: [M] int array.
     """
-    N = boxes.shape[0]
     # Sort by conf
     scores, sorted_indices = scores.sort(descending=True)
     boxes = boxes[sorted_indices]
 
     # IoU matrix
-    ious = iou_matrix(boxes, boxes)
-    ious = torch.triu(ious, diagonal=1)
+    ious = self_iou_matrix(boxes)
+
+    # p(f_i) estimation & enable broadcasting
     ious_cmax = ious.max(0)[0].view(-1, 1)
 
-    # Post threshold
+    # Decay factor
     if use_gaussian:
         decay = torch.exp((ious_cmax.square() - ious.square()) / gaussian_sigma)
     else:
         decay = (1 - ious) / (1 - ious_cmax)
     decay = decay.min(0)[0]
-    decayed_scores = scores * decay
 
+    # Select boxes
+    decayed_scores = scores * decay
     indices = torch.where(decayed_scores > threshold)[0]
+
     return sorted_indices[indices]

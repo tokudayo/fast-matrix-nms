@@ -1,8 +1,8 @@
 import torch
 import numpy as np
 from torchvision.ops import nms
-
-from matrix_nms import matrix_nms
+from tqdm import trange
+from matrix_nms import fast_matrix_nms
 from torchvision.ops import nms
 from matrix_nms_torch import matrix_nms as naive_matrix_nms
 import torch.utils.benchmark as benchmark
@@ -31,15 +31,15 @@ if __name__ == "__main__":
     np.random.seed(0)
     torch.manual_seed(0)
     results = []
-    for size in range(160, 3200, 160):
+    for size in trange(160, 3201, 160):
         boxes, scores = random_box(size)
         results.append(
             benchmark.Timer(
                 "matrix_nms(boxes, scores, 0.4)",
-                globals={"matrix_nms": matrix_nms, "boxes": boxes, "scores": scores},
+                globals={"matrix_nms": fast_matrix_nms, "boxes": boxes, "scores": scores},
                 label=f"Non-max suppression",
                 sub_label=f"{size}",
-                description="Matrix NMS CUDA",
+                description="Fast Matrix NMS",
             ).blocked_autorange(min_run_time=2)
         )
         results.append(
@@ -61,18 +61,19 @@ if __name__ == "__main__":
                 },
                 label=f"Non-max suppression",
                 sub_label=f"{size}",
-                description="Matrix NMS CPU",
+                description="Naive Matrix NMS",
             ).blocked_autorange(min_run_time=2)
         )
         results.append(
             benchmark.Timer(
-                "nms(boxes.cpu(), scores.cpu(), 0.1)",
-                globals={"nms": nms, "boxes": boxes, "scores": scores},
+                "nms(boxes, scores, 0.1)",
+                globals={"nms": nms, "boxes": boxes.cpu(), "scores": scores.cpu()},
                 label=f"Non-max suppression",
                 sub_label=f"{size}",
                 description="Torchvision NMS CPU",
             ).blocked_autorange(min_run_time=2)
         )
+
 
     compare = benchmark.Compare(results)
     compare.print()

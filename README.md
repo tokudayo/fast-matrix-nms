@@ -73,7 +73,7 @@ The figure way above shows the throughput (detections processed per second) of m
   <img src="./assets/speedup_naive.png" />
   </p>
   </td>
-  <td valign="top">
+  <td valign="bottom">
   <p align="center">
   <img src="./assets/latency.png" />
   </p>
@@ -98,7 +98,7 @@ In summary, this implementation fuses multiple steps into 3 CUDA kernels with so
 - Perform the remaining max reduction on the IoU matrix to obtain the row-wise maximums $O_{max}\in \mathcal{R}^N$
 - Compute the possible decay factor and possible scores $S'=F(S,O,O_{max}) \in \mathcal{R}^{N\times N}$ and select the boxes to remove, skipping the finding of the minimum decay factor for each box: if $\exists i:S'_{xi}<\mathrm{threshold}$, then detection $x$ should be removed.
 
-I am writing a blog post on the details of the implementation (optimizations, tricks used, limitations, etc.) and discuss other NMS methods :innocent:
+I am writing a blog post on the details of the implementation (optimizations, tricks used, limitations, etc.) and discuss other NMS methods :innocent:. The first part is [here](https://tokudayo.github.io/fast-matrix-nms-1/).
 
 ## License
 This project is released under the MIT License. Please see the [LICENSE](./LICENSE) file for more information.
